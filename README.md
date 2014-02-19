@@ -9,7 +9,7 @@ So,you must enable remote sensor function.
 This program will be distributed under Zlib License.
 
 
-Copyright (c) <2014> <Tomoki Imai (tomo832@gmail.com) >
+Copyright (c) 2014 Tomoki Imai (tomo832@gmail.com) 
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

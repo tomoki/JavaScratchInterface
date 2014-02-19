@@ -16,7 +16,7 @@ public class Scratch {
     private HashMap<String,String> variables = new HashMap<>();
     private HashMap<String,String> sensor_values = new HashMap<>();
     private ArrayList<ScratchEventListener> listeners = new ArrayList<>();
-    
+
     public Scratch(){
     }
     public void add_eventlistener(ScratchEventListener listener){
@@ -49,7 +49,7 @@ public class Scratch {
     public boolean is_known_var(final String s){
         return variables.containsKey(s);
     }
-    
+
     public String var(final String s){
         return variables.get(s);
     }
@@ -59,7 +59,7 @@ public class Scratch {
         sensor_values.put(name, val);
         send_message(SENSOR_UPDATE + " \"" + name + "\" " + val);
     }
-    
+
     public String get_sensor_value(final String name){
         return sensor_values.get(name);
     }
@@ -70,7 +70,7 @@ public class Scratch {
         // System.err.println(to_scratch_message(s));
         send_message(to_scratch_message(s));
     }
-    
+
     private void send_message(final byte[] bytes) throws IOException{
         DataOutputStream os = new DataOutputStream(socket.getOutputStream());
         os.write(bytes);
@@ -93,7 +93,7 @@ public class Scratch {
         }
         return r;
     }
-    
+
     private void receive_data() throws IOException{
         DataInputStream in = new DataInputStream(socket.getInputStream());
         int n;byte[] recv = new byte[1024];
@@ -102,7 +102,7 @@ public class Scratch {
         String message = new String(recv,4,n-4,"UTF-8");
         proceed_message(message);
     }
-    
+
     private void proceed_message(final String message){
         //System.err.println(message);
         if(message.startsWith(BROADCAST)){
@@ -113,22 +113,65 @@ public class Scratch {
             System.err.println("unknown message: " + message);
         }
     }
+
     private void proceed_variable_update(String message){
-        message = message.replaceFirst(SENSOR_UPDATE+" ","");
-        // space may be inserted in message.
-        String[] sp = message.split(" ");
-        //System.err.println(message);
-        for(int i=0;i<sp.length;i+=2){
-            String name = sp[i];
+        // remove sensor_update and add space to last.(it's gard.)
+        message = message.replaceFirst(SENSOR_UPDATE+" ","") + " ";
+        ArrayList<String> splited = new ArrayList<>();
+        String cur = "";
+        boolean isFirstCharacter = true;
+        boolean isFirstisQuotation = true;
+
+        for(int i=0;i<message.length()-1;i++){
+            if(isFirstCharacter){
+                cur = "";
+                if(message.charAt(i) == '\"'){
+                    isFirstisQuotation = true;
+                }else if(message.charAt(i) == ' '){
+                    // tail space.ignore it.
+                }else{
+                    isFirstisQuotation = false;
+                    cur += message.charAt(i);
+                }
+                isFirstCharacter = false;
+            }else{
+                if(!isFirstisQuotation){
+                    if(message.charAt(i) == ' '){
+                        splited.add(cur);
+                        isFirstCharacter = true;
+                    }else{
+                        cur += message.charAt(i);
+                    }
+                }else{
+                    if(message.charAt(i) == '\"'){
+                        if(message.charAt(i+1) == '\"'){
+                            // it is escaped.
+                            cur += "\"";i++;
+                        }else if(message.charAt(i+1) == ' '){
+                            // last quotation.
+                            splited.add(cur);i++;
+                            isFirstCharacter = true;
+                        }else{
+                            // there is no such case?
+                        }
+                    }else{
+                        cur += message.charAt(i);
+                    }
+                }
+            }
+        }
+        for(int i=0;i<splited.size();i+=2){
+            String name = splited.get(i);
             // remove double quote.
-            name = name.substring(1,name.length()-1);
-            String value = sp[i+1];
+            // name = name.substring(1,name.length()-1);
+            String value = splited.get(i+1);
             variables.put(name, value);
             for(ScratchEventListener listener : listeners){
                 listener.receive_variable_update(this,name,value);
             }
         }
     }
+
     private void proceed_broadcast(String message){
         // remove broadcast and remove double quotatin.
         message = message.replaceFirst(BROADCAST+" ","");

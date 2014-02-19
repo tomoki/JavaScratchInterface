@@ -10,6 +10,6 @@ public abstract class ScratchEventListener {
     }
     public void receive_broadcast(Scratch s,String message){
     }
-    public void receive_sensor_update(Scratch s,String name,String val){
+    public void receive_variable_update(Scratch s,String name,String val){
     }
 }

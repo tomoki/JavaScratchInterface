@@ -30,9 +30,9 @@ public class Main {
                 }
             }
             @Override
-            public void receive_sensor_update(Scratch s,String name, String val) {
+            public void receive_variable_update(Scratch s,String name, String val) {
                 // if name is double quoted,it's string.
-                super.receive_sensor_update(s,name, val);
+                super.receive_variable_update(s,name, val);
                 System.err.println(name + "->" + val);
                 System.err.println(s.var(name));
             }

@@ -22,7 +22,6 @@ public class Scratch {
     public void add_eventlistener(ScratchEventListener listener){
         listeners.add(listener);
     }
-    
     public void open(final String ip_addr) throws IOException{
         if(socket.isConnected()){
             System.err.println("already opened.");
@@ -44,41 +43,40 @@ public class Scratch {
     public boolean is_connected(){
         return socket.isConnected();
     }
-    public void send_broadcast(String s) throws IOException{
+    public void send_broadcast(final String s) throws IOException{
         send_message(BROADCAST + " \"" + s + "\"");
     }
-
-    
-    public boolean is_known_var(String s){
+    public boolean is_known_var(final String s){
         return variables.containsKey(s);
     }
     
-    public String var(String s){
+    public String var(final String s){
         return variables.get(s);
     }
 
-    public void set_sensor_value(String name,String val) throws IOException{
+    public void set_sensor_value(final String name,
+                                 final String val) throws IOException{
         sensor_values.put(name, val);
         send_message(SENSOR_UPDATE + " \"" + name + "\" " + val);
     }
     
-    public String get_sensor_value(String name){
+    public String get_sensor_value(final String name){
         return sensor_values.get(name);
     }
 
     // Helper functions
-    private void send_message(String s) throws IOException{
+    private void send_message(final String s) throws IOException{
         // System.err.println(s);
         // System.err.println(to_scratch_message(s));
         send_message(to_scratch_message(s));
     }
     
-    private void send_message(byte[] bytes) throws IOException{
+    private void send_message(final byte[] bytes) throws IOException{
         DataOutputStream os = new DataOutputStream(socket.getOutputStream());
         os.write(bytes);
     }
 
-    private byte[] to_scratch_message(String s){
+    private byte[] to_scratch_message(final String s){
         int n = s.length();
         ArrayList<Byte> ret = new ArrayList<Byte>();
         ret.add((byte)((n >> 24) & 0xFF));
@@ -110,12 +108,12 @@ public class Scratch {
         if(message.startsWith(BROADCAST)){
             proceed_broadcast(message);;
         }else if(message.startsWith(SENSOR_UPDATE)){
-            proceed_sensor_update(message);
+            proceed_variable_update(message);
         }else{
             System.err.println("unknown message: " + message);
         }
     }
-    private void proceed_sensor_update(String message){
+    private void proceed_variable_update(String message){
         message = message.replaceFirst(SENSOR_UPDATE+" ","");
         // space may be inserted in message.
         String[] sp = message.split(" ");
@@ -127,7 +125,7 @@ public class Scratch {
             String value = sp[i+1];
             variables.put(name, value);
             for(ScratchEventListener listener : listeners){
-                listener.receive_sensor_update(this,name,value);
+                listener.receive_variable_update(this,name,value);
             }
         }
     }

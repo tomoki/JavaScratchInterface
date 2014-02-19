@@ -20,6 +20,7 @@ public class Main {
             @Override
             public void receive_broadcast(Scratch s,String message) {
                 super.receive_broadcast(s,message);
+                System.err.println("receive: "+message);
                 if(message.equals("poyo")){
                     try {
                         s.send_broadcast("hoge");
@@ -33,12 +34,7 @@ public class Main {
                 // if name is double quoted,it's string.
                 super.receive_sensor_update(s,name, val);
                 System.err.println(name + "->" + val);
-                try {
-                    s.set_sensor_value(name, val+"poyo");
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                System.err.println(s.var(name));
             }
         });
         try {

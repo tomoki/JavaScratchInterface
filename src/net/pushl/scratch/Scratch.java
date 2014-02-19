@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.HashMap;
 
 public class Scratch {
@@ -69,8 +68,8 @@ public class Scratch {
 
     // Helper functions
     private void send_message(String s) throws IOException{
-        System.err.println(s);
-        System.err.println(to_scratch_message(s));
+        // System.err.println(s);
+        // System.err.println(to_scratch_message(s));
         send_message(to_scratch_message(s));
     }
     
@@ -105,6 +104,7 @@ public class Scratch {
         String message = new String(recv,4,n-4,"UTF-8");
         proceed_message(message);
     }
+    
     private void proceed_message(final String message){
         //System.err.println(message);
         if(message.startsWith(BROADCAST)){
@@ -117,13 +117,15 @@ public class Scratch {
     }
     private void proceed_sensor_update(String message){
         message = message.replaceFirst(SENSOR_UPDATE+" ","");
+        // space may be inserted in message.
         String[] sp = message.split(" ");
-        System.err.println(message);
+        //System.err.println(message);
         for(int i=0;i<sp.length;i+=2){
             String name = sp[i];
             // remove double quote.
             name = name.substring(1,name.length()-1);
             String value = sp[i+1];
+            variables.put(name, value);
             for(ScratchEventListener listener : listeners){
                 listener.receive_sensor_update(this,name,value);
             }
